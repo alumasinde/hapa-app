@@ -5,25 +5,40 @@ import 'api_exception.dart';
 class ApiClient {
   ApiClient({Dio? dio})
       : _dio = dio ??
-            Dio(
-              BaseOptions(
-                baseUrl: ApiConfig.baseUrl,
-                connectTimeout: const Duration(seconds: 8),
-                receiveTimeout: const Duration(seconds: 15),
-                sendTimeout: const Duration(seconds: 15),
-                headers: const {'Accept': 'application/json'},
-              ),
-            );
+            Dio(BaseOptions(
+              baseUrl: ApiConfig.baseUrl,
+              connectTimeout: const Duration(seconds: 8),
+              receiveTimeout: const Duration(seconds: 15),
+              sendTimeout: const Duration(seconds: 15),
+              headers: const {'Accept': 'application/json'},
+            ));
 
   final Dio _dio;
 
-  Future<Map<String, dynamic>> getHealth() => _getMap('/health');
-  Future<Map<String, dynamic>> getCategories() => _getMap('/categories');
-  Future<Map<String, dynamic>> getModes() => _getMap('/modes');
+  void setAccessToken(String token) {
+    _dio.options.headers['Authorization'] = 'Bearer $token';
+  }
 
-  Future<Map<String, dynamic>> _getMap(String path) async {
+  void clearAccessToken() {
+    _dio.options.headers.remove('Authorization');
+  }
+
+  Future<Map<String, dynamic>> getHealth() => get('/health');
+  Future<Map<String, dynamic>> getCategories() => get('/categories');
+  Future<Map<String, dynamic>> getModes() => get('/modes');
+
+  Future<Map<String, dynamic>> get(String path) async {
     try {
       final response = await _dio.get(path);
+      return _asMap(response.data);
+    } on DioException catch (error) {
+      throw ApiException.fromDio(error);
+    }
+  }
+
+  Future<Map<String, dynamic>> post(String path, Map<String, dynamic> body) async {
+    try {
+      final response = await _dio.post(path, data: body);
       return _asMap(response.data);
     } on DioException catch (error) {
       throw ApiException.fromDio(error);
