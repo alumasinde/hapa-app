@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../../categories/presentation/category_providers.dart';
 import '../../engagement/data/engagement_repository.dart';
@@ -22,12 +23,21 @@ class _FlashDetailPageState extends ConsumerState<FlashDetailPage> {
     try {
       final repository = EngagementRepository(ref.read(apiClientProvider));
       if (share) {
+        final location = widget.flash.location?.label;
+        final message = [
+          'Hapa alert: ${widget.flash.title}',
+          if (widget.flash.description != null && widget.flash.description!.trim().isNotEmpty)
+            widget.flash.description!.trim(),
+          if (location != null && location.trim().isNotEmpty) 'Location: ${location.trim()}',
+        ].join('\n');
+
+        await Share.share(
+          message,
+          subject: widget.flash.title,
+        );
+
+        // Record engagement only after the native share flow is successfully opened.
         await repository.recordShare(widget.flash.id);
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Share engagement recorded.')),
-          );
-        }
       } else {
         if (_helpful) {
           await repository.removeHelpful(widget.flash.id);
