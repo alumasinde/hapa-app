@@ -1,0 +1,1 @@
+class FlashLocation { const FlashLocation({required this.latitude,required this.longitude,this.areaName}); final double latitude; final double longitude; final String? areaName; factory FlashLocation.fromJson(Map<String,dynamic> j)=>FlashLocation(latitude:(j['lat'] as num?)?.toDouble()??0,longitude:(j['lng'] as num?)?.toDouble()??0,areaName:j['area_name']?.toString()); }
