@@ -1,16 +1,174 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import 'auth_controller.dart';
 
-class RegisterPage extends ConsumerStatefulWidget { const RegisterPage({super.key}); @override ConsumerState<RegisterPage> createState()=>_RegisterPageState(); }
+class RegisterPage extends ConsumerStatefulWidget {
+  const RegisterPage({super.key});
+
+  @override
+  ConsumerState<RegisterPage> createState() => _RegisterPageState();
+}
+
 class _RegisterPageState extends ConsumerState<RegisterPage> {
-  final _form=GlobalKey<FormState>(); final _first=TextEditingController(),_last=TextEditingController(),_email=TextEditingController(),_phone=TextEditingController(),_password=TextEditingController(); bool _loading=false,_obscure=true;
-  @override void dispose(){for(final c in [_first,_last,_email,_phone,_password]){c.dispose();}super.dispose();}
-  Future<void> _submit() async {if(!_form.currentState!.validate())return;setState(()=>_loading=true);try{await ref.read(authControllerProvider.notifier).register(firstName:_first.text.trim(),lastName:_last.text.trim(),email:_email.text.trim(),phone:_phone.text.trim(),password:_password.text);if(mounted)Navigator.pop(context);}catch(_){if(mounted)ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content:Text('Unable to create your account. Please try again.')));}finally{if(mounted)setState(()=>_loading=false);}}
-  Widget field(TextEditingController c,String label,{TextInputType? type,bool secret=false})=>Padding(padding:const EdgeInsets.only(bottom:14),child:TextFormField(controller:c,keyboardType:type,obscureText:secret&&_obscure,decoration:InputDecoration(labelText:label,prefixIcon:Icon(secret?Icons.lock_outline:label=='Email'?Icons.email_outlined:label=='Phone'?Icons.phone_outlined:Icons.person_outline),suffixIcon:secret?IconButton(onPressed:()=>setState(()=>_obscure=!_obscure),icon:Icon(_obscure?Icons.visibility_outlined:Icons.visibility_off_outlined)):null),validator:(v){if(v==null||v.trim().isEmpty)return '$label is required';if(label=='Email'&&!v.contains('@'))return 'Enter a valid email';if(secret&&v.length<8)return 'Use at least 8 characters';return null;}));
-  @override Widget build(BuildContext context)=>Scaffold(appBar:AppBar(title:const Text('Create account')),body:SafeArea(child:SingleChildScrollView(padding:const EdgeInsets.all(24),child:Center(child:ConstrainedBox(constraints:const BoxConstraints(maxWidth:460),child:Form(key:_form,child:Column(crossAxisAlignment:CrossAxisAlignment.stretch,children:[
-    Text('Join Hapa',style:Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight:FontWeight.w700)),const SizedBox(height:8),const Text('Help your community stay informed about what is happening nearby.'),const SizedBox(height:28),
-    field(_first,'First name'),field(_last,'Last name'),field(_email,'Email',type:TextInputType.emailAddress),field(_phone,'Phone',type:TextInputType.phone),field(_password,'Password',secret:true),const SizedBox(height:10),
-    FilledButton(onPressed:_loading?null:_submit,child:Padding(padding:const EdgeInsets.symmetric(vertical:14),child:_loading?const SizedBox(width:20,height:20,child:CircularProgressIndicator(strokeWidth:2)):const Text('Create account')))
-  ]))))));}
+  final _form = GlobalKey<FormState>();
+  final _first = TextEditingController();
+  final _last = TextEditingController();
+  final _email = TextEditingController();
+  final _phone = TextEditingController();
+  final _password = TextEditingController();
+
+  bool _loading = false;
+  bool _obscure = true;
+
+  @override
+  void dispose() {
+    for (final controller in [_first, _last, _email, _phone, _password]) {
+      controller.dispose();
+    }
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    if (!_form.currentState!.validate()) return;
+
+    setState(() => _loading = true);
+
+    try {
+      await ref.read(authControllerProvider.notifier).register(
+            firstName: _first.text.trim(),
+            lastName: _last.text.trim(),
+            email: _email.text.trim(),
+            phone: _phone.text.trim(),
+            password: _password.text,
+          );
+
+      if (mounted) Navigator.of(context).pop();
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Unable to create your account. Please try again.'),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  Widget field(
+    TextEditingController controller,
+    String label, {
+    TextInputType? type,
+    bool secret = false,
+  }) {
+    final prefixIcon = secret
+        ? Icons.lock_outline
+        : label == 'Email'
+            ? Icons.email_outlined
+            : label == 'Phone'
+                ? Icons.phone_outlined
+                : Icons.person_outline;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: TextFormField(
+        controller: controller,
+        keyboardType: type,
+        obscureText: secret && _obscure,
+        decoration: InputDecoration(
+          labelText: label,
+          prefixIcon: Icon(prefixIcon),
+          suffixIcon: secret
+              ? IconButton(
+                  onPressed: () => setState(() => _obscure = !_obscure),
+                  icon: Icon(
+                    _obscure
+                        ? Icons.visibility_outlined
+                        : Icons.visibility_off_outlined,
+                  ),
+                )
+              : null,
+        ),
+        validator: (value) {
+          if (value == null || value.trim().isEmpty) {
+            return '$label is required';
+          }
+          if (label == 'Email' && !value.contains('@')) {
+            return 'Enter a valid email';
+          }
+          if (secret && value.length < 8) {
+            return 'Use at least 8 characters';
+          }
+          return null;
+        },
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Create account')),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 460),
+              child: Form(
+                key: _form,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      'Join Hapa',
+                      style: Theme.of(context)
+                          .textTheme
+                          .headlineMedium
+                          ?.copyWith(fontWeight: FontWeight.w700),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Help your community stay informed about what is happening nearby.',
+                    ),
+                    const SizedBox(height: 28),
+                    field(_first, 'First name'),
+                    field(_last, 'Last name'),
+                    field(
+                      _email,
+                      'Email',
+                      type: TextInputType.emailAddress,
+                    ),
+                    field(
+                      _phone,
+                      'Phone',
+                      type: TextInputType.phone,
+                    ),
+                    field(_password, 'Password', secret: true),
+                    const SizedBox(height: 10),
+                    FilledButton(
+                      onPressed: _loading ? null : _submit,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        child: _loading
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Text('Create account'),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
