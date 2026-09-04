@@ -7,9 +7,12 @@ import '../domain/user.dart';
 enum AuthStatus { checking, unauthenticated, authenticated }
 
 class AuthState {
-  const AuthState({required this.status, this.user});
+  const AuthState({required this.status, this.user, this.error});
+
   final AuthStatus status;
   final User? user;
+  final String? error;
+
   bool get isAuthenticated => status == AuthStatus.authenticated;
 }
 
@@ -46,6 +49,7 @@ class AuthController extends StateNotifier<AuthState> {
       state = const AuthState(status: AuthStatus.unauthenticated);
       return;
     }
+
     _api.setAccessToken(tokens.token);
     try {
       final user = await _repository.me();
@@ -56,10 +60,21 @@ class AuthController extends StateNotifier<AuthState> {
   }
 
   Future<void> login({required String email, required String password}) async {
-    final session = await _repository.login(email: email, password: password);
-    await _storage.save(session.tokens);
-    _api.setAccessToken(session.tokens.token);
-    state = AuthState(status: AuthStatus.authenticated, user: session.user);
+    try {
+      final session = await _repository.login(
+        email: email,
+        password: password,
+      );
+      await _storage.save(session.tokens);
+      _api.setAccessToken(session.tokens.token);
+      state = AuthState(status: AuthStatus.authenticated, user: session.user);
+    } catch (error) {
+      state = AuthState(
+        status: AuthStatus.unauthenticated,
+        error: _message(error),
+      );
+      rethrow;
+    }
   }
 
   Future<void> register({
@@ -69,21 +84,40 @@ class AuthController extends StateNotifier<AuthState> {
     required String phone,
     required String password,
   }) async {
-    final session = await _repository.register(
-      firstName: firstName,
-      lastName: lastName,
-      email: email,
-      phone: phone,
-      password: password,
-    );
-    await _storage.save(session.tokens);
-    _api.setAccessToken(session.tokens.token);
-    state = AuthState(status: AuthStatus.authenticated, user: session.user);
+    try {
+      final session = await _repository.register(
+        firstName: firstName,
+        lastName: lastName,
+        email: email,
+        phone: phone,
+        password: password,
+      );
+      await _storage.save(session.tokens);
+      _api.setAccessToken(session.tokens.token);
+      state = AuthState(status: AuthStatus.authenticated, user: session.user);
+    } catch (error) {
+      state = AuthState(
+        status: AuthStatus.unauthenticated,
+        error: _message(error),
+      );
+      rethrow;
+    }
   }
 
   Future<void> logout() async {
-    _api.clearAccessToken();
-    await _storage.clear();
-    state = const AuthState(status: AuthStatus.unauthenticated);
+    try {
+      await _storage.clear();
+    } finally {
+      _api.clearAccessToken();
+      state = const AuthState(status: AuthStatus.unauthenticated);
+    }
+  }
+
+  String _message(Object error) {
+    final message = error.toString();
+    if (message.startsWith('ApiException: ')) {
+      return message.substring('ApiException: '.length);
+    }
+    return 'Something went wrong. Please try again.';
   }
 }
