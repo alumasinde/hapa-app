@@ -9,7 +9,7 @@ class ApiConfig {
   // 127.0.0.1/localhost. Override this with --dart-define for each network.
   static const String developmentHost = String.fromEnvironment(
     'HAPA_API_HOST',
-    defaultValue: '192.168.1.100',
+    defaultValue: 'http://192.168.100.11',
   );
 
   static const int developmentPort = int.fromEnvironment(
