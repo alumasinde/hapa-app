@@ -114,9 +114,9 @@ class AuthController extends StateNotifier<AuthState> {
   }
 
   String _message(Object error) {
-    final message = error.toString();
-    if (message.startsWith('ApiException: ')) {
-      return message.substring('ApiException: '.length);
+    final message = error.toString().trim();
+    if (message.isNotEmpty && message != 'Instance of \'Exception\'') {
+      return message;
     }
     return 'Something went wrong. Please try again.';
   }
