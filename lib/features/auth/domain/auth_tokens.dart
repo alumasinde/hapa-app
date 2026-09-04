@@ -1,0 +1,1 @@
+class AuthTokens { const AuthTokens({required this.token,required this.refreshToken}); final String token; final String refreshToken; factory AuthTokens.fromJson(Map<String,dynamic> j)=>AuthTokens(token:j['token']?.toString()??'',refreshToken:j['refresh_token']?.toString()??''); bool get isValid=>token.isNotEmpty&&refreshToken.isNotEmpty; }
