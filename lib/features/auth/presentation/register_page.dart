@@ -44,12 +44,12 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
           );
 
       if (mounted) Navigator.of(context).pop();
-    } catch (_) {
+    } catch (error) {
       if (!mounted) return;
+      final message = ref.read(authControllerProvider).error ??
+          'Unable to create your account. Please try again.';
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Unable to create your account. Please try again.'),
-        ),
+        SnackBar(content: Text(message)),
       );
     } finally {
       if (mounted) setState(() => _loading = false);
