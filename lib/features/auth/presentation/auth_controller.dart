@@ -106,9 +106,7 @@ class AuthController extends StateNotifier<AuthState> {
 
   Future<void> logout() async {
     try {
-      if (_storage != null) {
-        await _storage.clear();
-      }
+      await _storage.clear();
     } finally {
       _api.clearAccessToken();
       state = const AuthState(status: AuthStatus.unauthenticated);
