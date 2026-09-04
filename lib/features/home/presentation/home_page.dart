@@ -1,10 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class HomePage extends StatelessWidget {
+import '../../categories/presentation/category_providers.dart';
+import '../../modes/presentation/mode_providers.dart';
+
+class HomePage extends ConsumerWidget {
   const HomePage({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final categories = ref.watch(categoriesProvider);
+    final modes = ref.watch(modesProvider);
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
@@ -19,35 +26,82 @@ class HomePage extends StatelessWidget {
           ),
         ],
       ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 12, 20, 100),
-        children: [
-          Text(
-            'What is happening near you?',
-            style: Theme.of(context).textTheme.headlineSmall,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Discover recent reports and updates around your location.',
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
-          const SizedBox(height: 24),
-          const _SectionHeader(),
-          const SizedBox(height: 12),
-          const _PreviewFlashCard(
-            title: 'Traffic building up',
-            location: 'Nearby',
-            time: 'Recent',
-            categoryIcon: Icons.directions_car_outlined,
-          ),
-          const SizedBox(height: 12),
-          const _PreviewFlashCard(
-            title: 'A new report will appear here',
-            location: 'Your area',
-            time: 'Live updates',
-            categoryIcon: Icons.report_outlined,
-          ),
-        ],
+      body: RefreshIndicator(
+        onRefresh: () async {
+          ref.invalidate(categoriesProvider);
+          ref.invalidate(modesProvider);
+          await Future.wait([
+            ref.read(categoriesProvider.future),
+            ref.read(modesProvider.future),
+          ]);
+        },
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 100),
+          children: [
+            Text('What is happening near you?',
+                style: Theme.of(context).textTheme.headlineSmall),
+            const SizedBox(height: 8),
+            Text(
+              'Discover recent reports and updates around your location.',
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+            const SizedBox(height: 24),
+            Text('Categories', style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(height: 12),
+            categories.when(
+              data: (items) => _CategoryList(items: items),
+              loading: () => const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(20),
+                  child: CircularProgressIndicator(),
+                ),
+              ),
+              error: (error, _) => _LoadError(
+                message: 'Could not load categories',
+                onRetry: () => ref.invalidate(categoriesProvider),
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text('Modes', style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(height: 12),
+            modes.when(
+              data: (items) => Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: items
+                    .map((mode) => Chip(
+                          avatar: const Icon(Icons.tune_outlined, size: 18),
+                          label: Text(mode.name),
+                        ))
+                    .toList(),
+              ),
+              loading: () => const LinearProgressIndicator(),
+              error: (error, _) => _LoadError(
+                message: 'Could not load modes',
+                onRetry: () => ref.invalidate(modesProvider),
+              ),
+            ),
+            const SizedBox(height: 28),
+            Row(
+              children: [
+                Text('Nearby', style: Theme.of(context).textTheme.titleLarge),
+                const Spacer(),
+                IconButton(
+                  onPressed: () {},
+                  tooltip: 'Refresh',
+                  icon: const Icon(Icons.refresh_outlined),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            const _PreviewFlashCard(
+              title: 'Your live reports will appear here',
+              location: 'Nearby',
+              time: 'Waiting for feed',
+              categoryIcon: Icons.location_searching_outlined,
+            ),
+          ],
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {},
@@ -60,18 +114,66 @@ class HomePage extends StatelessWidget {
   }
 }
 
-class _SectionHeader extends StatelessWidget {
-  const _SectionHeader();
+class _CategoryList extends StatelessWidget {
+  const _CategoryList({required this.items});
+
+  final List items;
+
+  IconData _iconFor(String? value) {
+    switch (value?.toLowerCase()) {
+      case 'traffic':
+      case 'car':
+        return Icons.directions_car_outlined;
+      case 'security':
+      case 'warning':
+        return Icons.warning_amber_outlined;
+      case 'weather':
+        return Icons.cloud_outlined;
+      case 'fire':
+        return Icons.local_fire_department_outlined;
+      default:
+        return Icons.report_outlined;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (items.isEmpty) {
+      return const Text('No categories are currently available.');
+    }
+
+    return Wrap(
+      spacing: 10,
+      runSpacing: 10,
+      children: items
+          .map(
+            (category) => ActionChip(
+              avatar: Icon(_iconFor(category.icon)),
+              label: Text(category.name),
+              onPressed: () {},
+            ),
+          )
+          .toList(),
+    );
+  }
+}
+
+class _LoadError extends StatelessWidget {
+  const _LoadError({required this.message, required this.onRetry});
+
+  final String message;
+  final VoidCallback onRetry;
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Text('Nearby', style: Theme.of(context).textTheme.titleLarge),
-        const Spacer(),
+        const Icon(Icons.error_outline),
+        const SizedBox(width: 10),
+        Expanded(child: Text(message)),
         IconButton(
-          onPressed: () {},
-          tooltip: 'Refresh',
+          onPressed: onRetry,
+          tooltip: 'Retry',
           icon: const Icon(Icons.refresh_outlined),
         ),
       ],
@@ -97,62 +199,28 @@ class _PreviewFlashCard extends StatelessWidget {
     final muted = Theme.of(context).colorScheme.onSurfaceVariant;
 
     return Card(
-      child: InkWell(
-        onTap: () {},
-        borderRadius: BorderRadius.circular(16),
-        child: Padding(
-          padding: const EdgeInsets.all(18),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(categoryIcon),
-              const SizedBox(height: 14),
-              Text(title, style: Theme.of(context).textTheme.titleMedium),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Icon(Icons.location_on_outlined, size: 17, color: muted),
-                  const SizedBox(width: 5),
-                  Expanded(
-                    child: Text(location, style: TextStyle(color: muted)),
-                  ),
-                  Icon(Icons.schedule_outlined, size: 17, color: muted),
-                  const SizedBox(width: 5),
-                  Text(time, style: TextStyle(color: muted)),
-                ],
-              ),
-              const SizedBox(height: 18),
-              Row(
-                children: [
-                  _Metric(icon: Icons.thumb_up_outlined, label: 'Helpful'),
-                  const SizedBox(width: 20),
-                  _Metric(icon: Icons.share_outlined, label: 'Share'),
-                  const SizedBox(width: 20),
-                  _Metric(icon: Icons.visibility_outlined, label: 'Views'),
-                ],
-              ),
-            ],
-          ),
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(categoryIcon),
+            const SizedBox(height: 14),
+            Text(title, style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Icon(Icons.location_on_outlined, size: 17, color: muted),
+                const SizedBox(width: 5),
+                Expanded(child: Text(location, style: TextStyle(color: muted))),
+                Icon(Icons.schedule_outlined, size: 17, color: muted),
+                const SizedBox(width: 5),
+                Text(time, style: TextStyle(color: muted)),
+              ],
+            ),
+          ],
         ),
       ),
-    );
-  }
-}
-
-class _Metric extends StatelessWidget {
-  const _Metric({required this.icon, required this.label});
-
-  final IconData icon;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Icon(icon, size: 18),
-        const SizedBox(width: 6),
-        Text(label),
-      ],
     );
   }
 }
