@@ -1,0 +1,1 @@
+class Mode { const Mode({required this.key,required this.name,this.description,this.icon}); final String key; final String name; final String? description; final String? icon; factory Mode.fromJson(Map<String,dynamic> j)=>Mode(key:(j['key']??j['mode_key']??'').toString(),name:j['name']?.toString()??'',description:j['description']?.toString(),icon:j['icon']?.toString()); }
