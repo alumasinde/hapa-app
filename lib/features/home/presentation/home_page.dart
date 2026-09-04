@@ -5,7 +5,6 @@ import 'package:share_plus/share_plus.dart';
 import '../../categories/domain/category.dart';
 import '../../categories/presentation/category_providers.dart';
 import '../../engagement/data/engagement_repository.dart';
-import '../../flash/data/flash_repository.dart';
 import '../../flash/domain/flash.dart';
 import '../../flash/presentation/flash_detail_page.dart';
 import '../../flash/presentation/flash_providers.dart';
@@ -254,8 +253,7 @@ class _FlashCardState extends ConsumerState<_FlashCard> {
                     ),
                   ],
                 ),
-                if (_flash.description != null &&
-                    _flash.description!.trim().isNotEmpty) ...[
+                if (_flash.description?.trim().isNotEmpty == true) ...[
                   const SizedBox(height: 14),
                   Text(
                     _flash.description!.trim(),
@@ -501,7 +499,7 @@ class _CreateAlertPageState extends ConsumerState<CreateAlertPage> {
               const SizedBox(height: 28),
               categories.when(
                 data: (items) => DropdownButtonFormField<String>(
-                  value: _category,
+                  initialValue: _category,
                   items: items
                       .map(
                         (item) => DropdownMenuItem<String>(
