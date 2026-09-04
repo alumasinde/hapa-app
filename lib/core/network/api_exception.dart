@@ -12,6 +12,24 @@ class ApiException implements Exception {
   final String? code;
 
   factory ApiException.fromDio(DioException error) {
+    if (error.type == DioExceptionType.connectionTimeout) {
+      return const ApiException(
+        message: 'Unable to connect to the Hapa API. Check that the API server is running and reachable from this phone.',
+      );
+    }
+
+    if (error.type == DioExceptionType.connectionError) {
+      return const ApiException(
+        message: 'Unable to reach the Hapa API. Check your Wi-Fi connection and API server address.',
+      );
+    }
+
+    if (error.type == DioExceptionType.receiveTimeout) {
+      return const ApiException(
+        message: 'The Hapa API took too long to respond. Please try again.',
+      );
+    }
+
     final data = error.response?.data;
     if (data is Map) {
       final errorBody = data['error'];
