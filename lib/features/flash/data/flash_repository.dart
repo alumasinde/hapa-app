@@ -26,11 +26,16 @@ class FlashRepository {
     final data = await _api.get(path);
     final raw = data['flashes'];
 
-    final items = raw is List
+    final parsed = raw is List
         ? raw.whereType<Map>().map(
             (item) => Flash.fromJson(Map<String, dynamic>.from(item)),
           )
         : const <Flash>[];
+
+    // The feed is authoritative on the server, but never render the same
+    // report twice when a backend page contains repeated IDs.
+    final seenIds = <int>{};
+    final items = parsed.where((flash) => seenIds.add(flash.id)).toList(growable: false);
 
     return FlashFeed(
       flashes: List<Flash>.unmodifiable(items),
