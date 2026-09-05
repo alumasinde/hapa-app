@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../features/auth/presentation/auth_controller.dart';
 import '../features/home/presentation/home_page.dart';
+import '../features/flash/presentation/flash_providers.dart';
 
 class HapaNavigationShell extends ConsumerStatefulWidget {
   const HapaNavigationShell({super.key});
