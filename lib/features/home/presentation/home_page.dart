@@ -5,6 +5,7 @@ import 'package:share_plus/share_plus.dart';
 import '../../../core/location/location_providers.dart';
 import '../../../core/location/location_service.dart';
 import '../../../core/network/api_client.dart';
+import '../../../core/network/api_exception.dart';
 import '../../categories/domain/category.dart';
 import '../../categories/presentation/category_providers.dart';
 import '../../engagement/data/engagement_repository.dart';
@@ -284,6 +285,7 @@ class _FlashCardState extends ConsumerState<_FlashCard> {
     final status = _flash.status?.replaceAll('_', ' ');
     final accent = _categoryColor(category);
     final icon = _categoryIcon(category);
+    final repeatsTitle = _flash.description?.trim() == _flash.title.trim();
 
     return Material(
       color: colors.surface,
@@ -343,6 +345,15 @@ class _FlashCardState extends ConsumerState<_FlashCard> {
                             overflow: TextOverflow.ellipsis,
                             style: theme.textTheme.titleMedium?.copyWith(fontSize: 18),
                           ),
+                          if (_flash.reporterName?.trim().isNotEmpty == true) ...[
+                            const SizedBox(height: 4),
+                            Text(
+                              'Reported by ' + _flash.reporterName!.trim(),
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: colors.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                     ),
@@ -350,7 +361,7 @@ class _FlashCardState extends ConsumerState<_FlashCard> {
                     const Icon(Icons.chevron_right_rounded),
                   ],
                 ),
-                if (_flash.description?.trim().isNotEmpty == true) ...[
+                if (_flash.description?.trim().isNotEmpty == true && !repeatsTitle) ...[
                   const SizedBox(height: 14),
                   Text(
                     _flash.description!.trim(),
@@ -653,6 +664,12 @@ class _CreateAlertPageState extends ConsumerState<CreateAlertPage> {
         const SnackBar(content: Text('Alert created successfully.')),
       );
       Navigator.of(context).pop(true);
+    } on ApiException catch (error) {
+      if (!mounted) return;
+      final message = error.code == 'DUPLICATE_FLASH'
+          ? 'A matching report was already posted nearby. We did not create another one.'
+          : error.message;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
