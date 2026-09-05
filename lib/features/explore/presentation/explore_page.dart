@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../../../core/location/location_providers.dart';
+import '../../../core/location/location_service.dart';
 import '../../flash/domain/flash.dart';
 import '../../flash/presentation/flash_detail_page.dart';
 import '../../flash/presentation/flash_providers.dart';
