@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../categories/presentation/category_providers.dart';
+import '../../../core/network/api_client.dart';
 import '../data/flash_repository.dart';
 
 final flashRepositoryProvider = Provider<FlashRepository>(
