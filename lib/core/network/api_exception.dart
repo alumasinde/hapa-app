@@ -40,7 +40,7 @@ class ApiException implements Exception {
           message: errorBody['message']?.toString() ?? 'Request failed',
           statusCode: error.response?.statusCode,
           code: errorBody['code']?.toString(),
-          fieldErrors: _fieldErrors(errorBody['details']),
+          fieldErrors: _fieldErrors(errorBody['fields']),
         );
       }
     }
