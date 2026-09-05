@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../config/api_config.dart';
 import 'api_exception.dart';
 
@@ -65,3 +66,6 @@ class ApiClient {
     throw const FormatException('Unexpected API response');
   }
 }
+
+
+final apiClientProvider = Provider<ApiClient>((ref) => ApiClient());
