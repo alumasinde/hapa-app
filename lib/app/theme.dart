@@ -2,76 +2,96 @@ import 'package:flutter/material.dart';
 
 class HapaTheme {
   static ThemeData get light {
-    const background = Colors.white;
-    const text = Color(0xFF171717);
-    const secondary = Color(0xFF6B7280);
-    const border = Color(0xFFE5E7EB);
-    const accent = Color(0xFF111827);
+    const ink = Color(0xFF172033);
+    const muted = Color(0xFF667085);
+    const canvas = Color(0xFFF4F6FA);
+    const surface = Color(0xFFFFFFFF);
+    const border = Color(0xFFE2E7F0);
+    const blue = Color(0xFF2F6BFF);
+
+    final scheme = ColorScheme.fromSeed(
+      seedColor: blue,
+      brightness: Brightness.light,
+      surface: surface,
+    ).copyWith(
+      primary: blue,
+      onPrimary: Colors.white,
+      onSurface: ink,
+      onSurfaceVariant: muted,
+      outlineVariant: border,
+      surfaceContainerHighest: const Color(0xFFF0F3F8),
+    );
 
     return ThemeData(
       useMaterial3: true,
-      scaffoldBackgroundColor: background,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: accent,
-        brightness: Brightness.light,
-        surface: background,
-      ).copyWith(
-        onSurface: text,
+      colorScheme: scheme,
+      scaffoldBackgroundColor: canvas,
+      appBarTheme: const AppBarTheme(
+        backgroundColor: canvas,
+        foregroundColor: ink,
+        elevation: 0,
+        surfaceTintColor: Colors.transparent,
+        titleTextStyle: TextStyle(fontSize: 25, fontWeight: FontWeight.w800, color: ink),
       ),
       textTheme: const TextTheme(
-        headlineSmall: TextStyle(color: text, fontWeight: FontWeight.w700),
-        titleLarge: TextStyle(color: text, fontWeight: FontWeight.w700),
-        titleMedium: TextStyle(color: text, fontWeight: FontWeight.w600),
-        bodyLarge: TextStyle(color: text),
-        bodyMedium: TextStyle(color: secondary),
-        labelLarge: TextStyle(color: text, fontWeight: FontWeight.w600),
+        headlineSmall: TextStyle(color: ink, fontWeight: FontWeight.w800, letterSpacing: -0.6),
+        titleLarge: TextStyle(color: ink, fontWeight: FontWeight.w800),
+        titleMedium: TextStyle(color: ink, fontWeight: FontWeight.w700),
+        bodyLarge: TextStyle(color: ink),
+        bodyMedium: TextStyle(color: muted),
+        labelLarge: TextStyle(color: ink, fontWeight: FontWeight.w700),
       ),
       inputDecorationTheme: const InputDecorationTheme(
         filled: true,
-        fillColor: background,
+        fillColor: surface,
+        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         border: OutlineInputBorder(
           borderSide: BorderSide(color: border),
-          borderRadius: BorderRadius.all(Radius.circular(14)),
+          borderRadius: BorderRadius.all(Radius.circular(16)),
         ),
         enabledBorder: OutlineInputBorder(
           borderSide: BorderSide(color: border),
-          borderRadius: BorderRadius.all(Radius.circular(14)),
+          borderRadius: BorderRadius.all(Radius.circular(16)),
         ),
         focusedBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: text, width: 1.4),
-          borderRadius: BorderRadius.all(Radius.circular(14)),
+          borderSide: BorderSide(color: blue, width: 1.5),
+          borderRadius: BorderRadius.all(Radius.circular(16)),
         ),
       ),
       cardTheme: const CardThemeData(
-        color: background,
+        color: surface,
         elevation: 0,
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(18)),
+          borderRadius: BorderRadius.all(Radius.circular(24)),
           side: BorderSide(color: border),
         ),
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          backgroundColor: accent,
+          backgroundColor: ink,
           foregroundColor: Colors.white,
-          minimumSize: const Size.fromHeight(52),
+          minimumSize: const Size.fromHeight(54),
           shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(Radius.circular(14)),
+            borderRadius: BorderRadius.all(Radius.circular(16)),
           ),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          foregroundColor: text,
+          foregroundColor: ink,
           minimumSize: const Size.fromHeight(52),
           side: const BorderSide(color: border),
           shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(Radius.circular(14)),
+            borderRadius: BorderRadius.all(Radius.circular(16)),
           ),
         ),
       ),
-      iconTheme: const IconThemeData(color: text),
+      floatingActionButtonTheme: const FloatingActionButtonThemeData(
+        backgroundColor: ink,
+        foregroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(20))),
+      ),
     );
   }
 }
