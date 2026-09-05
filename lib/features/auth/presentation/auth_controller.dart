@@ -16,8 +16,6 @@ class AuthState {
   bool get isAuthenticated => status == AuthStatus.authenticated;
 }
 
-final apiClientProvider = Provider<ApiClient>((ref) => ApiClient());
-
 final authRepositoryProvider = Provider<AuthRepository>(
   (ref) => AuthRepository(ref.watch(apiClientProvider)),
 );
