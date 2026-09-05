@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
 
-import '../../categories/presentation/category_providers.dart';
+import '../../../core/network/api_client.dart';
 import '../../engagement/data/engagement_repository.dart';
 import '../domain/flash.dart';
 
