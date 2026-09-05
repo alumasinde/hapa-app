@@ -12,8 +12,8 @@ class AuthRepository {
   AuthRepository(this._api);
   final ApiClient _api;
 
-  Future<AuthSession> login({required String email, required String password}) async {
-    final data = await _api.post('/auth/login', {'email': email, 'password': password});
+  Future<AuthSession> login({required String login, required String password}) async {
+    final data = await _api.post('/auth/login', {'login': login, 'password': password});
     return _sessionFrom(data);
   }
 
@@ -29,8 +29,8 @@ class AuthRepository {
       'first_name': firstName,
       'last_name': lastName,
       'display_name': displayName,
-      'email': email,
-      'phone': phone,
+      'email': email.isEmpty ? null : email,
+      'phone': phone.isEmpty ? null : phone,
       'password': password,
     });
     return _sessionFrom(data);
