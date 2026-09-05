@@ -13,7 +13,7 @@ class LoginPage extends ConsumerStatefulWidget {
 
 class _LoginPageState extends ConsumerState<LoginPage> {
   final _formKey = GlobalKey<FormState>();
-  final _email = TextEditingController();
+  final _login = TextEditingController();
   final _password = TextEditingController();
 
   bool _loading = false;
@@ -21,7 +21,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
   @override
   void dispose() {
-    _email.dispose();
+    _login.dispose();
     _password.dispose();
     super.dispose();
   }
@@ -33,14 +33,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
     try {
       await ref.read(authControllerProvider.notifier).login(
-            email: _email.text.trim(),
+            login: _login.text.trim(),
             password: _password.text,
           );
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Unable to sign in. Check your details and try again.'),
+        SnackBar(
+          content: Text(ref.read(authControllerProvider).error ?? 'Unable to sign in. Check your details and try again.'),
         ),
       );
     } finally {
@@ -77,15 +77,15 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     ),
                     const SizedBox(height: 32),
                     TextFormField(
-                      controller: _email,
-                      keyboardType: TextInputType.emailAddress,
+                      controller: _login,
+                      keyboardType: TextInputType.text,
                       decoration: const InputDecoration(
-                        labelText: 'Email',
-                        prefixIcon: Icon(Icons.email_outlined),
+                        labelText: 'Email or phone',
+                        prefixIcon: Icon(Icons.person_outline),
                       ),
                       validator: (value) =>
-                          value == null || !value.contains('@')
-                              ? 'Enter a valid email'
+                          value == null || value.trim().isEmpty
+                              ? 'Enter your email or phone'
                               : null,
                     ),
                     const SizedBox(height: 16),
