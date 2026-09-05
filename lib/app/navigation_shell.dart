@@ -216,36 +216,3 @@ class _ProfileSection extends StatelessWidget {
         ),
       );
 }
-
-class _PhaseOnePlaceholder extends StatelessWidget {
-  const _PhaseOnePlaceholder({required this.icon, required this.title, required this.message});
-  final IconData icon;
-  final String title;
-  final String message;
-
-  @override
-  Widget build(BuildContext context) => Center(
-        child: Padding(
-          padding: const EdgeInsets.all(28),
-          child: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(28),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface,
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(icon, size: 48, color: Theme.of(context).colorScheme.primary),
-                const SizedBox(height: 16),
-                Text(title, style: Theme.of(context).textTheme.titleLarge),
-                const SizedBox(height: 8),
-                Text(message, textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodyMedium?.copyWith(height: 1.45)),
-              ],
-            ),
-          ),
-        ),
-      );
-}
