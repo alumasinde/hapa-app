@@ -14,6 +14,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
   final _form = GlobalKey<FormState>();
   final _first = TextEditingController();
   final _last = TextEditingController();
+  final _username = TextEditingController();
   final _email = TextEditingController();
   final _phone = TextEditingController();
   final _password = TextEditingController();
@@ -23,7 +24,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
 
   @override
   void dispose() {
-    for (final controller in [_first, _last, _email, _phone, _password]) {
+    for (final controller in [_first, _last, _username, _email, _phone, _password]) {
       controller.dispose();
     }
     super.dispose();
@@ -38,6 +39,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
       await ref.read(authControllerProvider.notifier).register(
             firstName: _first.text.trim(),
             lastName: _last.text.trim(),
+            displayName: _username.text.trim(),
             email: _email.text.trim(),
             phone: _phone.text.trim(),
             password: _password.text,
@@ -94,6 +96,12 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
           if (value == null || value.trim().isEmpty) {
             return '$label is required';
           }
+          if (label == 'Username' && value.trim().length < 3) {
+            return 'Username must be at least 3 characters';
+          }
+          if (label == 'Username' && value.trim().contains(' ')) {
+            return 'Username cannot contain spaces';
+          }
           if (label == 'Email' && !value.contains('@')) {
             return 'Enter a valid email';
           }
@@ -135,6 +143,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                     const SizedBox(height: 28),
                     field(_first, 'First name'),
                     field(_last, 'Last name'),
+                    field(_username, 'Username'),
                     field(
                       _email,
                       'Email',
