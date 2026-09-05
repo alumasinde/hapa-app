@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../features/auth/presentation/auth_controller.dart';
 import '../features/home/presentation/home_page.dart';
+import '../features/explore/presentation/explore_page.dart';
+import '../features/activity/presentation/activity_page.dart';
 import '../features/flash/presentation/flash_providers.dart';
 
 class HapaNavigationShell extends ConsumerStatefulWidget {
@@ -21,8 +23,8 @@ class _HapaNavigationShellState extends ConsumerState<HapaNavigationShell> {
   Widget build(BuildContext context) {
     final pages = [
       const HomePage(),
-      const _ExplorePage(),
-      const _ActivityPage(),
+      const ExplorePage(),
+      const ActivityPage(),
       const _ProfilePage(),
     ];
 
@@ -119,28 +121,6 @@ class _HapaBottomBar extends StatelessWidget {
       ),
     );
   }
-}
-
-class _ExplorePage extends StatelessWidget {
-  const _ExplorePage();
-
-  @override
-  Widget build(BuildContext context) => const _PhaseOnePlaceholder(
-        icon: Icons.map_outlined,
-        title: 'Explore your area',
-        message: 'Navigation is ready. Map-based discovery and nearby area browsing are the next Explore features.',
-      );
-}
-
-class _ActivityPage extends StatelessWidget {
-  const _ActivityPage();
-
-  @override
-  Widget build(BuildContext context) => const _PhaseOnePlaceholder(
-        icon: Icons.notifications_none_rounded,
-        title: 'Your activity',
-        message: 'Updates about your reports and community activity will appear here as the notification feature is connected.',
-      );
 }
 
 class _ProfilePage extends ConsumerWidget {
