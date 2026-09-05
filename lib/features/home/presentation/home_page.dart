@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../categories/domain/category.dart';
+import '../../../core/network/api_client.dart';
 import '../../categories/presentation/category_providers.dart';
 import '../../engagement/data/engagement_repository.dart';
 import '../../flash/domain/flash.dart';
