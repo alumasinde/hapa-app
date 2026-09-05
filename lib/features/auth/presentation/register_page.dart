@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'auth_controller.dart';
 import '../../../core/network/api_exception.dart';
+import 'auth_controller.dart';
 
 class RegisterPage extends ConsumerStatefulWidget {
   const RegisterPage({super.key});
@@ -20,23 +20,33 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
   final _phone = TextEditingController();
   final _password = TextEditingController();
 
+  final Map<String, String> _fieldErrors = {};
+
   bool _loading = false;
   bool _obscure = true;
-  final Map<String, String> _fieldErrors = {};
 
   @override
   void dispose() {
-    for (final controller in [_first, _last, _username, _email, _phone, _password]) {
-      controller.dispose();
-    }
+    _first.dispose();
+    _last.dispose();
+    _username.dispose();
+    _email.dispose();
+    _phone.dispose();
+    _password.dispose();
     super.dispose();
   }
 
   Future<void> _submit() async {
     if (!_form.currentState!.validate()) return;
-    if (_email.text.trim().isEmpty && _phone.text.trim().isEmpty) {
+
+    final email = _email.text.trim();
+    final phone = _phone.text.trim();
+
+    if (email.isEmpty && phone.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Enter at least an email or phone number.')),
+        const SnackBar(
+          content: Text('Enter at least an email address or phone number.'),
+        ),
       );
       return;
     }
@@ -51,52 +61,76 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
             firstName: _first.text.trim(),
             lastName: _last.text.trim(),
             displayName: _username.text.trim(),
-            email: _email.text.trim(),
-            phone: _phone.text.trim(),
+            email: email,
+            phone: phone,
             password: _password.text,
           );
 
-      if (mounted) Navigator.of(context).pop();
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
     } catch (error) {
       if (!mounted) return;
+
       if (error is ApiException && error.fieldErrors.isNotEmpty) {
         setState(() => _fieldErrors.addAll(error.fieldErrors));
       }
+
       final message = ref.read(authControllerProvider).error ??
           'Unable to create your account. Please try again.';
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(message)),
       );
     } finally {
-      if (mounted) setState(() => _loading = false);
+      if (mounted) {
+        setState(() => _loading = false);
+      }
     }
   }
 
-  Widget field(
+  String _fieldKey(String label) {
+    switch (label) {
+      case 'First name':
+        return 'first_name';
+      case 'Last name':
+        return 'last_name';
+      case 'Username':
+        return 'display_name';
+      case 'Email':
+        return 'email';
+      case 'Phone':
+        return 'phone';
+      case 'Password':
+        return 'password';
+      default:
+        return label;
+    }
+  }
+
+  Widget _field(
     TextEditingController controller,
     String label, {
-    TextInputType? type,
-    bool secret = false,
+    TextInputType? keyboardType,
+    bool obscure = false,
     bool required = true,
   }) {
-    final prefixIcon = secret
-        ? Icons.lock_outline
-        : label == 'Email'
-            ? Icons.email_outlined
-            : label == 'Phone'
-                ? Icons.phone_outlined
-                : Icons.person_outline;
+    IconData icon = Icons.person_outline;
+    if (label == 'Email') icon = Icons.email_outlined;
+    if (label == 'Phone') icon = Icons.phone_outlined;
+    if (label == 'Password') icon = Icons.lock_outline;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
       child: TextFormField(
         controller: controller,
-        keyboardType: type,
-        obscureText: secret && _obscure,
+        keyboardType: keyboardType,
+        obscureText: obscure && _obscure,
         decoration: InputDecoration(
           labelText: label,
-          prefixIcon: Icon(prefixIcon),
-          suffixIcon: secret
+          prefixIcon: Icon(icon),
+          errorText: _fieldErrors[_fieldKey(label)],
+          suffixIcon: obscure
               ? IconButton(
                   onPressed: () => setState(() => _obscure = !_obscure),
                   icon: Icon(
@@ -106,196 +140,40 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                   ),
                 )
               : null,
-          errorText: _fieldErrors[_fieldKey(label)],
         ),
         validator: (value) {
           final trimmed = value?.trim() ?? '';
+
           if (required && trimmed.isEmpty) {
             return '$label is required';
           }
-          if (!required && trimmed.isEmpty) return null;
-          if (label == 'Username' && value.trim().length < 3) {
+
+          if (!required && trimmed.isEmpty) {
+            return null;
+          }
+
+          if (label == 'Username' && trimmed.length < 3) {
             return 'Username must be at least 3 characters';
           }
-          if (label == 'Username' && value.trim().contains(' ')) {
+
+          if (label == 'Username' && trimmed.contains(' ')) {
             return 'Username cannot contain spaces';
           }
-          if (label == 'Email' && !RegExp(r'^[^@\\s]+@[^@\\s]+\\.[^@\\s]+
-            return 'Enter a valid email';
-          }
-          if (label == 'Phone' && !RegExp(r'^\\+[1-9][0-9]{7,14}
-            return 'Use at least 8 characters';
-          }
-          return null;
-        },
-      ),
-    );
-  }
 
-  String _fieldKey(String label) => switch (label) {
-        'First name' => 'first_name',
-        'Last name' => 'last_name',
-        'Username' => 'display_name',
-        'Email' => 'email',
-        'Phone' => 'phone',
-        'Password' => 'password',
-        _ => label,
-      };
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Create account')),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 460),
-              child: Form(
-                key: _form,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(
-                      'Join Hapa',
-                      style: Theme.of(context)
-                          .textTheme
-                          .headlineMedium
-                          ?.copyWith(fontWeight: FontWeight.w700),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Help your community stay informed about what is happening nearby.',
-                    ),
-                    const SizedBox(height: 28),
-                    field(_first, 'First name'),
-                    field(_last, 'Last name'),
-                    field(_username, 'Username'),
-                    field(
-                      _email,
-                      'Email',
-                      type: TextInputType.emailAddress,
-                      required: false,
-                    ),
-                    field(
-                      _phone,
-                      'Phone',
-                      type: TextInputType.phone,
-                      required: false,
-                    ),
-                    field(_password, 'Password', secret: true),
-                    const SizedBox(height: 10),
-                    FilledButton(
-                      onPressed: _loading ? null : _submit,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        child: _loading
-                            ? const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : const Text('Create account'),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-).hasMatch(trimmed)) {
-            return 'Enter a valid email';
+          if (label == 'Email' &&
+              !RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(trimmed)) {
+            return 'Enter a valid email address';
           }
-          if (secret && value.length < 8) {
-            return 'Use at least 8 characters';
-          }
-          return null;
-        },
-      ),
-    );
-  }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Create account')),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 460),
-              child: Form(
-                key: _form,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(
-                      'Join Hapa',
-                      style: Theme.of(context)
-                          .textTheme
-                          .headlineMedium
-                          ?.copyWith(fontWeight: FontWeight.w700),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Help your community stay informed about what is happening nearby.',
-                    ),
-                    const SizedBox(height: 28),
-                    field(_first, 'First name'),
-                    field(_last, 'Last name'),
-                    field(_username, 'Username'),
-                    field(
-                      _email,
-                      'Email',
-                      type: TextInputType.emailAddress,
-                    ),
-                    field(
-                      _phone,
-                      'Phone',
-                      type: TextInputType.phone,
-                    ),
-                    field(_password, 'Password', secret: true),
-                    const SizedBox(height: 10),
-                    FilledButton(
-                      onPressed: _loading ? null : _submit,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        child: _loading
-                            ? const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : const Text('Create account'),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-).hasMatch(trimmed)) {
+          if (label == 'Phone' &&
+              !RegExp(r'^\+[1-9][0-9]{7,14}$').hasMatch(trimmed)) {
             return 'Use international format, e.g. +254712345678';
           }
-          if (secret && value.length < 8) {
+
+          if (label == 'Password' && value != null && value.length < 8) {
             return 'Use at least 8 characters';
           }
+
           return null;
         },
       ),
@@ -329,99 +207,22 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                       'Help your community stay informed about what is happening nearby.',
                     ),
                     const SizedBox(height: 28),
-                    field(_first, 'First name'),
-                    field(_last, 'Last name'),
-                    field(_username, 'Username'),
-                    field(
+                    _field(_first, 'First name'),
+                    _field(_last, 'Last name'),
+                    _field(_username, 'Username'),
+                    _field(
                       _email,
                       'Email',
-                      type: TextInputType.emailAddress,
+                      keyboardType: TextInputType.emailAddress,
+                      required: false,
                     ),
-                    field(
+                    _field(
                       _phone,
                       'Phone',
-                      type: TextInputType.phone,
+                      keyboardType: TextInputType.phone,
+                      required: false,
                     ),
-                    field(_password, 'Password', secret: true),
-                    const SizedBox(height: 10),
-                    FilledButton(
-                      onPressed: _loading ? null : _submit,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        child: _loading
-                            ? const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : const Text('Create account'),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-).hasMatch(trimmed)) {
-            return 'Enter a valid email';
-          }
-          if (secret && value.length < 8) {
-            return 'Use at least 8 characters';
-          }
-          return null;
-        },
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Create account')),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 460),
-              child: Form(
-                key: _form,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(
-                      'Join Hapa',
-                      style: Theme.of(context)
-                          .textTheme
-                          .headlineMedium
-                          ?.copyWith(fontWeight: FontWeight.w700),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Help your community stay informed about what is happening nearby.',
-                    ),
-                    const SizedBox(height: 28),
-                    field(_first, 'First name'),
-                    field(_last, 'Last name'),
-                    field(_username, 'Username'),
-                    field(
-                      _email,
-                      'Email',
-                      type: TextInputType.emailAddress,
-                    ),
-                    field(
-                      _phone,
-                      'Phone',
-                      type: TextInputType.phone,
-                    ),
-                    field(_password, 'Password', secret: true),
+                    _field(_password, 'Password', obscure: true),
                     const SizedBox(height: 10),
                     FilledButton(
                       onPressed: _loading ? null : _submit,
