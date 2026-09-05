@@ -20,6 +20,7 @@ class AuthRepository {
   Future<AuthSession> register({
     required String firstName,
     required String lastName,
+    required String displayName,
     required String email,
     required String phone,
     required String password,
@@ -27,6 +28,7 @@ class AuthRepository {
     final data = await _api.post('/auth/register', {
       'first_name': firstName,
       'last_name': lastName,
+      'display_name': displayName,
       'email': email,
       'phone': phone,
       'password': password,
