@@ -70,8 +70,7 @@ class HomePage extends ConsumerWidget {
             ),
           ],
         ),
-      ),
-    );
+      );
   }
 }
 
