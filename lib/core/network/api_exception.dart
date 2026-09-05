@@ -5,11 +5,13 @@ class ApiException implements Exception {
     required this.message,
     this.statusCode,
     this.code,
+    this.fieldErrors = const {},
   });
 
   final String message;
   final int? statusCode;
   final String? code;
+  final Map<String, String> fieldErrors;
 
   factory ApiException.fromDio(DioException error) {
     if (error.type == DioExceptionType.connectionTimeout) {
@@ -38,6 +40,7 @@ class ApiException implements Exception {
           message: errorBody['message']?.toString() ?? 'Request failed',
           statusCode: error.response?.statusCode,
           code: errorBody['code']?.toString(),
+          fieldErrors: _fieldErrors(errorBody['details']),
         );
       }
     }
@@ -46,6 +49,11 @@ class ApiException implements Exception {
       message: error.message ?? 'Unable to reach the Hapa API',
       statusCode: error.response?.statusCode,
     );
+  }
+
+  static Map<String, String> _fieldErrors(dynamic details) {
+    if (details is! Map) return const {};
+    return details.map((key, value) => MapEntry(key.toString(), value.toString()));
   }
 
   @override
