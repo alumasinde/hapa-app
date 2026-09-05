@@ -28,19 +28,7 @@ class HomePage extends ConsumerWidget {
     final location = ref.watch(currentLocationProvider);
     final categories = ref.watch(categoriesProvider);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Hapa'),
-        actions: [
-          IconButton(
-            tooltip: 'Notifications',
-            onPressed: () {},
-            icon: const Icon(Icons.notifications_none_rounded),
-          ),
-          const SizedBox(width: 8),
-        ],
-      ),
-      body: RefreshIndicator(
+    return RefreshIndicator(
         onRefresh: () => _refresh(ref),
         child: ListView(
           physics: const AlwaysScrollableScrollPhysics(),
@@ -82,11 +70,6 @@ class HomePage extends ConsumerWidget {
             ),
           ],
         ),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showCreateAlert(context, ref),
-        icon: const Icon(Icons.add_rounded),
-        label: const Text('Report'),
       ),
     );
   }
@@ -579,7 +562,7 @@ class _FeedError extends StatelessWidget {
   }
 }
 
-Future<void> _showCreateAlert(BuildContext context, WidgetRef ref) async {
+Future<void> showCreateAlert(BuildContext context, WidgetRef ref) async {
   final created = await Navigator.of(context).push<bool>(
     MaterialPageRoute(builder: (_) => const CreateAlertPage()),
   );
